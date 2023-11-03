@@ -1,7 +1,7 @@
-"use client";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+'use client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import {
   Form,
   FormControl,
@@ -9,38 +9,66 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import SignInGoogle from "../SignInGoogle";
+} from '../ui/form';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
+import Link from 'next/link';
+import SignInGoogle from '../SignInGoogle';
+import { useRouter } from 'next/navigation';
+import { useToast } from '../ui/use-toast';
 
 const FormSchema = z
   .object({
-    username: z.string().min(1, "Username is required").max(100),
-    email: z.string().min(1, "Email is required").email("Invalid email"),
-    password: z.string().min(8, "Password must have at least 8 characters"),
+    username: z.string().min(1, 'Username is required').max(100),
+    email: z.string().min(1, 'Email is required').email('Invalid email'),
+    password: z.string().min(8, 'Password must have at least 8 characters'),
     confirmPassword: z.string().min(1),
-  })
+  }) //for validation confirmPassword
   .refine((data) => data.password === data.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Password does not match",
+    path: ['confirmPassword'],
+    message: 'Password does not match',
   });
 
 const SignUpForm = () => {
-  //define form
+  const { toast } = useToast();
+  const router = useRouter();
+  //define form and validation from zod
   const form = useForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
   //define submitHandler
-  const onSubmit = (values) => {
-    console.log(values);
+  const onSubmit = async (values) => {
+    const response = await fetch('/api/user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: values.username,
+        email: values.email,
+        password: values.password,
+      }),
+    });
+    const responseData = await response.json();
+    if (!response.ok) {
+      toast({
+        title: 'Error',
+        description: `${responseData.message}`,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Success',
+        description: 'Register success',
+      });
+      // router.push('/sign-in');
+    }
   };
   return (
     <Form {...form}>
@@ -116,7 +144,7 @@ const SignUpForm = () => {
       </div>
       <SignInGoogle>Sign up with Google</SignInGoogle>
       <p className="text-center text-sm text-gray-600">
-        {" "}
+        {' '}
         If you already have an account, please&nbsp;
         <Link href="/sign-in" className="text-blue-600 hover:underline">
           Sign in
