@@ -7,7 +7,7 @@ import { authOptions } from '@/lib/auth';
 export default async function Home() {
   const getSession = await getServerSession(authOptions);
   return (
-    <div>
+    <div className='max-w-lg'>
       <h1 className="text-2xl">Home</h1>
       <Link href="/admin" className={buttonVariants()}>
         Open admin
